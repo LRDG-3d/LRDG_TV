@@ -1,11 +1,11 @@
 import { useParams, Link, Navigate } from "react-router-dom"
 import VideoPlayer from "../components/VideoPlayer.jsx"
-import { useSeriesData } from "../hooks/useSeriesData.js"
+import { useCloudContent } from "../hooks/useCloudContent.js"
 import "./Watch.css"
 
 export default function Watch() {
   const { episodeId } = useParams()
-  const { series, episodes } = useSeriesData()
+  const { series, episodes } = useCloudContent()
 
   const sorted = [...episodes].sort((a, b) => a.season - b.season || a.episode - b.episode)
   const index = sorted.findIndex((e) => e.id === episodeId)

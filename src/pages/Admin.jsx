@@ -65,16 +65,32 @@ export default function Admin() {
     persist(seriesForm, episodes)
   }
 
+  function nextEpisodeNumber() {
+    const season1 = episodes.filter((ep) => ep.season === 1)
+    if (season1.length === 0) return 1
+    return Math.max(...season1.map((ep) => ep.episode)) + 1
+  }
+
   function handleEpisodeSubmit(e) {
     e.preventDefault()
-    const id = epForm.id || `s${String(epForm.season).padStart(2, "0")}e${String(epForm.episode).padStart(2, "0")}`
-    const next = { ...epForm, id }
+
+    let next
+    if (editingId) {
+      // Editar: conserva la temporada/número que ya tenía este episodio.
+      const existing = episodes.find((ep) => ep.id === editingId)
+      next = { ...existing, ...epForm, id: editingId }
+    } else {
+      // Nuevo episodio: se asigna automáticamente al final de la lista.
+      const episode = nextEpisodeNumber()
+      const id = `s01e${String(episode).padStart(2, "0")}`
+      next = { ...epForm, id, season: 1, episode }
+    }
 
     let updated
     if (editingId) {
       updated = episodes.map((ep) => (ep.id === editingId ? next : ep))
     } else {
-      updated = [...episodes.filter((ep) => ep.id !== id), next]
+      updated = [...episodes, next]
     }
     persist(seriesForm, updated)
     setEpForm(emptyForm)
@@ -180,24 +196,6 @@ export default function Admin() {
         {tab === "episodes" && (
           <>
             <form className="admin-form" onSubmit={handleEpisodeSubmit}>
-              <label>
-                Temporada
-                <input
-                  type="number"
-                  min="1"
-                  value={epForm.season}
-                  onChange={(e) => setEpForm({ ...epForm, season: Number(e.target.value) })}
-                />
-              </label>
-              <label>
-                Número de episodio
-                <input
-                  type="number"
-                  min="1"
-                  value={epForm.episode}
-                  onChange={(e) => setEpForm({ ...epForm, episode: Number(e.target.value) })}
-                />
-              </label>
               <label className="admin-form__full">
                 Título
                 <input

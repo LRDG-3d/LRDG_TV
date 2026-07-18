@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
+import { getDatabase } from "firebase/database"
 
 // Configuración de tu proyecto de Firebase (el-rosano).
 // Estas claves no son secretas: Firebase está diseñado para que viajen al
@@ -18,3 +19,4 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
+export const db = getDatabase(app)

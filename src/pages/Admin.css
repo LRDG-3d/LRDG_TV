@@ -35,6 +35,21 @@
   font-size: 12.5px;
 }
 
+.admin-page__status {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: var(--ink-dim);
+}
+
+.admin-page__status--ok {
+  color: #4caf7d;
+}
+
+.admin-page__status--error {
+  color: var(--accent);
+}
+
 .admin-page__tabs {
   display: flex;
   gap: 8px;

@@ -1,9 +1,9 @@
 import EpisodeCard from "../components/EpisodeCard.jsx"
-import { useSeriesData } from "../hooks/useSeriesData.js"
+import { useCloudContent } from "../hooks/useCloudContent.js"
 import "./Home.css"
 
 export default function Home() {
-  const { episodes } = useSeriesData()
+  const { episodes } = useCloudContent()
   const sorted = [...episodes].sort((a, b) => a.season - b.season || a.episode - b.episode)
 
   return (

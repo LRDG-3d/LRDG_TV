@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom"
-import { useSeriesData } from "../hooks/useSeriesData.js"
+import { useCloudContent } from "../hooks/useCloudContent.js"
 import "./Episodes.css"
 
 function groupBySeason(episodes) {
@@ -23,7 +23,7 @@ function formatDate(dateStr) {
 }
 
 export default function Episodes() {
-  const { series, episodes } = useSeriesData()
+  const { series, episodes } = useCloudContent()
   const seasons = groupBySeason(episodes)
 
   return (
