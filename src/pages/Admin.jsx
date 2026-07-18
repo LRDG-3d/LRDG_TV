@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { useSeriesData } from "../hooks/useSeriesData.js"
+import { useEffect, useState } from "react"
+import { useCloudContent } from "../hooks/useCloudContent.js"
 import { useAuth } from "../hooks/useAuth.js"
 import Login from "./Login.jsx"
 import "./Admin.css"
@@ -36,12 +36,18 @@ function download(filename, text) {
 
 export default function Admin() {
   const { user, loading, login, logout } = useAuth()
-  const { series, episodes, saveOverrides, resetOverrides, hasLocalChanges } = useSeriesData()
+  const { series, episodes, loading: contentLoading, publish } = useCloudContent()
   const [tab, setTab] = useState("episodes")
   const [seriesForm, setSeriesForm] = useState(series)
   const [epForm, setEpForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [status, setStatus] = useState("idle") // idle | saving | saved | error
+
+  useEffect(() => {
+    if (!contentLoading) setSeriesForm(series)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentLoading])
 
   if (loading) {
     return (
@@ -56,8 +62,16 @@ export default function Admin() {
   }
 
 
-  function persist(nextSeries, nextEpisodes) {
-    saveOverrides({ series: nextSeries, episodes: nextEpisodes })
+  async function persist(nextSeries, nextEpisodes) {
+    setStatus("saving")
+    try {
+      await publish(nextSeries, nextEpisodes)
+      setStatus("saved")
+      setTimeout(() => setStatus("idle"), 2000)
+    } catch (err) {
+      console.error(err)
+      setStatus("error")
+    }
   }
 
   function handleSeriesSubmit(e) {
@@ -104,7 +118,7 @@ export default function Admin() {
   }
 
   function deleteEpisode(id) {
-    if (!confirm("¿Eliminar este episodio? Esta acción solo afecta a tu borrador local.")) return
+    if (!confirm("¿Eliminar este episodio? Se publicará de inmediato para todos los visitantes.")) return
     persist(seriesForm, episodes.filter((ep) => ep.id !== id))
   }
 
@@ -129,12 +143,18 @@ export default function Admin() {
         </div>
 
         <div className="admin-page__notice">
-          <strong>GitHub Pages es un sitio estático:</strong> no existe una base de datos ni un servidor, así
-          que estos cambios se guardan solo en el <em>localStorage</em> de este navegador y no se publican
-          automáticamente para tus visitantes. Cuando termines de editar, usa <strong>“Copiar código”</strong>{" "}
-          o <strong>“Descargar JSON”</strong> y pega el resultado en{" "}
-          <code>src/data/seriesData.js</code>, luego haz commit y push para publicar los cambios de verdad.
+          <strong>Publicación en tiempo real:</strong> los episodios se guardan en Firebase, así que en
+          cuanto los añadas o edites aquí, <strong>todos los visitantes los verán</strong> al recargar el
+          sitio, sin importar el navegador o dispositivo. No hace falta hacer commit ni push para esto.
         </div>
+
+        {status === "saving" && <p className="admin-page__status">Guardando…</p>}
+        {status === "saved" && <p className="admin-page__status admin-page__status--ok">Publicado ✓</p>}
+        {status === "error" && (
+          <p className="admin-page__status admin-page__status--error">
+            No se pudo guardar. Revisa las reglas de Firebase Realtime Database o tu conexión.
+          </p>
+        )}
 
         <div className="admin-page__tabs">
           <button className={tab === "episodes" ? "is-active" : ""} onClick={() => setTab("episodes")}>
@@ -297,9 +317,9 @@ export default function Admin() {
         )}
 
         <div className="admin-page__export">
-          <h2 className="admin-page__subtitle">Publicar tus cambios</h2>
+          <h2 className="admin-page__subtitle">Respaldo (opcional)</h2>
           <div className="admin-page__export-actions">
-            <button className="btn btn-primary" onClick={handleCopyCode}>
+            <button className="btn btn-ghost" onClick={handleCopyCode}>
               {copied ? "¡Código copiado!" : "Copiar código de seriesData.js"}
             </button>
             <button
@@ -308,16 +328,11 @@ export default function Admin() {
             >
               Descargar JSON
             </button>
-            {hasLocalChanges && (
-              <button className="btn btn-ghost" onClick={resetOverrides}>
-                Restablecer borrador local
-              </button>
-            )}
           </div>
           <p className="admin-page__hint">
-            Pega el código copiado dentro de <code>src/data/seriesData.js</code>, reemplazando su contenido
-            actual, luego haz <code>git add . && git commit -m "actualizar episodios" && git push</code> para
-            publicarlo en GitHub Pages.
+            No es necesario para publicar: los episodios ya se guardan en Firebase y se ven en cualquier
+            navegador en cuanto los guardas. Esto es solo una copia de seguridad por si algún día quieres
+            reemplazar el contenido semilla de <code>src/data/seriesData.js</code> en el código.
           </p>
         </div>
       </div>
