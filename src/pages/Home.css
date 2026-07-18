@@ -8,19 +8,19 @@
   padding: 40px 0;
 }
 
-.home-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
+.home-section {
+  margin-bottom: 32px;
 }
 
-.home-grid .ep-card {
-  width: 100%;
+.home-section h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 14px;
 }
 
-@media (max-width: 480px) {
-  .home-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
+.home-section__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }

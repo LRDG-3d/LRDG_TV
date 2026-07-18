@@ -1,0 +1,44 @@
+.episode-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.episode-row:hover {
+  border-color: rgba(255, 206, 69, 0.5);
+  transform: translateY(-2px);
+}
+
+.episode-row__thumb {
+  width: 130px;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 12px;
+  background: var(--bg-raised);
+  flex: 0 0 auto;
+}
+
+.episode-row__info h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.episode-row__info span {
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .episode-row__thumb {
+    width: 104px;
+  }
+}

@@ -25,7 +25,7 @@ export default function Watch() {
           ← Volver a {series.title}
         </Link>
 
-        <VideoPlayer src={episode.videoUrl} title={episode.title} />
+        <VideoPlayer src={episode.videoUrl} title={episode.title} episodeId={episode.id} />
 
         <div className="watch-page__info">
           <span className="eyebrow">
