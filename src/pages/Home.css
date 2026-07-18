@@ -1,0 +1,26 @@
+.home-page {
+  padding: 110px 0 60px;
+  min-height: 70vh;
+}
+
+.home-page__empty {
+  color: var(--ink-dim);
+  padding: 40px 0;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.home-grid .ep-card {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .home-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
