@@ -8,14 +8,16 @@
   position: relative;
   background: var(--bg-card);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 10px;
   overflow: hidden;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .ep-card:hover .ep-card__frame {
   transform: translateY(-4px);
-  border-color: rgba(212, 162, 76, 0.5);
+  border-color: rgba(255, 206, 69, 0.55);
 }
 
 .ep-card__sprockets {
@@ -23,7 +25,7 @@
   background-image: radial-gradient(circle, var(--bg) 2.5px, transparent 2.6px);
   background-size: 16px 10px;
   background-position: 6px center;
-  background-color: #000;
+  background-color: rgba(0, 0, 0, 0.35);
 }
 
 .ep-card__thumb {
