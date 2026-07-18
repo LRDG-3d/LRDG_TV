@@ -1,0 +1,40 @@
+.watch-page {
+  padding: 110px 0 80px;
+  min-height: 60vh;
+}
+
+.watch-page__back {
+  display: inline-block;
+  font-size: 14px;
+  color: var(--ink-dim);
+  margin-bottom: 18px;
+  transition: color 0.15s ease;
+}
+
+.watch-page__back:hover {
+  color: var(--ink);
+}
+
+.watch-page__info {
+  max-width: 760px;
+  margin: 24px 0 32px;
+}
+
+.watch-page__title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 5vw, 42px);
+  margin: 8px 0 12px;
+}
+
+.watch-page__desc {
+  color: var(--ink-dim);
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.watch-page__nav {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
