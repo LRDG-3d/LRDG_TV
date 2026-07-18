@@ -1,46 +1,64 @@
 // ============================================================================
-// DATOS REALES DE LA SERIE
-// ============================================================================
-// Este es el ÚNICO archivo donde debe cargarse el contenido real de la
-// serie. Está vacío a propósito: la plataforma se entrega sin ningún
-// contenido precargado.
+// DATOS DE LA SERIE
+// ----------------------------------------------------------------------------
+// Este es el ÚNICO archivo que necesitas editar para poner tu propia serie.
+// No contiene contenido real: son datos de ejemplo para que veas la estructura.
 //
-// Cuando quieras publicar tu serie, reemplaza `null` por un objeto con
-// esta forma (puedes borrar temporadas/episodios que aún no existan):
+// - "series"   -> información general (título, descripción, imágenes, etc.)
+// - "episodes" -> lista de episodios, agrupados por temporada
 //
-// export const seriesData = {
-//   id: 'lrdc',
-//   title: 'Título de la serie',
-//   tagline: 'Una línea corta que la describe',
-//   description: 'Sinopsis completa de la serie.',
-//   status: 'ongoing',           // 'ongoing' | 'ended'
-//   banner: '/ruta/a/banner.jpg',
-//   logo: null,                  // opcional
-//   seasons: [
-//     {
-//       id: 'temporada-1',
-//       number: 1,
-//       title: 'Temporada 1',
-//       description: 'Sinopsis de la temporada.',
-//       cover: '/ruta/a/portada-t1.jpg',
-//       episodes: [
-//         {
-//           id: 't1e1',
-//           number: 1,
-//           title: 'Título del episodio',
-//           description: 'Sinopsis del episodio.',
-//           thumbnail: '/ruta/a/miniatura.jpg',
-//           duration: '24:10',
-//           videoUrl: null, // se añadirá desde el panel de administración
-//         },
-//       ],
-//     },
-//   ],
-// };
-//
-// IMPORTANTE: no añadas contenido de prueba aquí. Para probar el diseño
-// usa src/data/testPlaceholderData.js, que está claramente marcado y se
-// puede borrar sin afectar esta estructura.
+// Puedes editar este archivo a mano, o usar el Panel de Administración
+// (ruta #/admin) para generar el código actualizado y pegarlo aquí.
 // ============================================================================
 
-export const seriesData = null;
+export const series = {
+  title: "Nombre de la Serie",
+  tagline: "El eslogan o frase corta de la serie va aquí",
+  synopsis:
+    "Escribe aquí la sinopsis de tu serie. Este texto aparece en el hero de la página de inicio y describe de qué trata la historia, quiénes son los personajes principales y qué la hace especial.",
+  heroImage: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=1920&auto=format&fit=crop",
+  posterImage: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=600&auto=format&fit=crop",
+  year: "2024",
+  genres: ["Drama", "Misterio"],
+  rating: "16+",
+  seasonsCount: 1,
+}
+
+export const episodes = [
+  {
+    id: "s01e01",
+    season: 1,
+    episode: 1,
+    title: "Episodio de ejemplo 1",
+    description:
+      "Descripción corta de este episodio de ejemplo. Reemplázala con la sinopsis real de tu episodio.",
+    thumbnail: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?q=80&w=800&auto=format&fit=crop",
+    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    duration: "42:00",
+    date: "2024-01-01",
+  },
+  {
+    id: "s01e02",
+    season: 1,
+    episode: 2,
+    title: "Episodio de ejemplo 2",
+    description:
+      "Descripción corta de este episodio de ejemplo. Reemplázala con la sinopsis real de tu episodio.",
+    thumbnail: "https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?q=80&w=800&auto=format&fit=crop",
+    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    duration: "38:00",
+    date: "2024-01-08",
+  },
+  {
+    id: "s01e03",
+    season: 1,
+    episode: 3,
+    title: "Episodio de ejemplo 3",
+    description:
+      "Descripción corta de este episodio de ejemplo. Reemplázala con la sinopsis real de tu episodio.",
+    thumbnail: "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?q=80&w=800&auto=format&fit=crop",
+    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    duration: "45:00",
+    date: "2024-01-15",
+  },
+]

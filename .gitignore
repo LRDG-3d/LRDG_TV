@@ -2,6 +2,4 @@ node_modules
 dist
 .DS_Store
 *.local
-.vscode/*
-!.vscode/extensions.json
-npm-debug.log*
+.vscode

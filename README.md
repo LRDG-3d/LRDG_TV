@@ -1,114 +1,150 @@
-# LRDC-TV
+# LRDG_TV
 
-Plataforma de streaming dedicada **exclusivamente a una única serie**. No es
-un catálogo genérico: toda la estructura (temporadas, episodios,
-reproductor) pertenece a una sola serie. Se entrega **sin contenido
-precargado**: el catálogo empieza vacío y muestra un estado profesional de
-"sin contenido" hasta que se añada la serie real.
+Plataforma de streaming estática dedicada a una sola serie. React + Vite, sin backend, sin base de datos, lista para GitHub Pages.
 
-## Stack
+## Estructura del proyecto
 
-- React 18 + Vite 5
-- React Router 6 (`HashRouter`)
-- Sin backend, sin base de datos, sin login (fase 1, solo frontend)
-- Despliegue automático a GitHub Pages con GitHub Actions
+```
+LRDG_TV/
+├── .github/workflows/deploy.yml   # Deploy automático a GitHub Pages
+├── index.html
+├── package.json
+├── vite.config.js                 # base: '/LRDG_TV/'
+├── public/
+└── src/
+    ├── main.jsx
+    ├── App.jsx                    # Rutas (HashRouter)
+    ├── data/
+    │   └── seriesData.js          # ⭐ ÚNICO archivo que editas para tu serie
+    ├── hooks/
+    │   └── useSeriesData.js       # Combina seriesData.js con el borrador local (Admin)
+    ├── components/
+    │   ├── Navbar.jsx / .css
+    │   ├── Hero.jsx / .css
+    │   ├── EpisodeCard.jsx / .css
+    │   ├── EpisodeReel.jsx / .css
+    │   └── VideoPlayer.jsx / .css
+    ├── pages/
+    │   ├── Home.jsx / .css
+    │   ├── Episodes.jsx / .css
+    │   ├── Watch.jsx / .css
+    │   └── Admin.jsx / .css
+    └── styles/
+        └── global.css
+```
 
-## Primer uso (importante)
-
-Este proyecto **no incluye `package-lock.json`** todavía, porque se generó
-en un entorno sin acceso a internet. Antes de subirlo a GitHub, hazlo una
-vez en tu máquina:
+## Desarrollo local
 
 ```bash
 npm install
+npm run dev
 ```
 
-Esto creará `package-lock.json`. Súbelo al repositorio junto con el resto
-del código: el workflow de despliegue usa `npm ci`, que necesita ese
-archivo para instalar exactamente las mismas versiones.
+Abre `http://localhost:5173`.
 
-## Scripts
+> `npm install` genera (o actualiza) `package-lock.json` automáticamente. Ese archivo
+> **debe subirse al repositorio** (`git add package-lock.json`) para que las instalaciones
+> sean reproducibles. El workflow de GitHub Actions usa `npm install`, así que funciona
+> tanto si ya subiste el lockfile como si es la primera vez.
+
+## Build de producción
 
 ```bash
-npm run dev       # servidor de desarrollo
-npm run build     # build de producción en ./dist
-npm run preview   # sirve el build de ./dist localmente para comprobarlo
+npm run build
+npm run preview   # para probar el build localmente antes de subirlo
 ```
 
-Comprueba siempre `npm run build && npm run preview` antes de dar por
-buena una versión: es la mejor forma de detectar problemas de rutas que
-`npm run dev` no muestra.
+El resultado se genera en `dist/`.
 
-## Estructura del contenido
+## Cómo agregar tu serie
 
-Todo el contenido pasa por `src/config/content.js`, que expone tres
-funciones (`fetchSeries`, `fetchSeason`, `fetchEpisode`) usadas por las
-páginas. Hoy leen de `src/data/seriesData.js`, que está vacío a
-propósito:
+Edita **`src/data/seriesData.js`**:
 
-```js
-export const seriesData = null;
+- `series`: título, sinopsis, imagen de fondo del hero, año, géneros, etc.
+- `episodes`: un array de objetos, uno por episodio (temporada, número, título,
+  descripción, miniatura, `videoUrl` con el enlace directo al video, duración y fecha).
+
+También puedes usar el **panel de administración** en `/#/admin` dentro de la app:
+te permite añadir/editar/eliminar episodios con una interfaz visual y una vista previa
+de la miniatura. Como GitHub Pages es estático, esos cambios solo se guardan en el
+`localStorage` de tu navegador (un borrador local). Para publicarlos de verdad:
+
+1. Haz tus cambios en `/#/admin`.
+2. Pulsa **"Copiar código de seriesData.js"** (o "Descargar JSON" si prefieres).
+3. Pega ese código dentro de `src/data/seriesData.js`, reemplazando su contenido.
+4. Sube los cambios: `git add . && git commit -m "actualizar episodios" && git push`.
+
+## Por qué usa `videoUrl` en vez de subir archivos de video
+
+GitHub Pages solo sirve archivos estáticos y tiene límites de tamaño de repositorio,
+así que no está pensado para alojar archivos de video pesados. `videoUrl` debe ser un
+enlace directo (`.mp4`, `.webm`, etc.) a un video alojado en otro lugar (por ejemplo
+un bucket de almacenamiento, un CDN, o tu propio servidor). El reproductor es un
+`<video>` HTML5 estándar, así que cualquier URL directa funciona.
+
+## Por qué HashRouter (rutas con `#`)
+
+La app usa `HashRouter` de `react-router-dom` en vez de `BrowserRouter`. Esto significa
+que las rutas se ven así: `tuusuario.github.io/LRDG_TV/#/episodios`. La ventaja es que
+**funciona perfectamente en GitHub Pages sin ninguna configuración adicional**: no hay
+riesgo de pantalla en blanco ni de error 404 al recargar la página en una ruta interna,
+porque el navegador nunca le pide al servidor una ruta que no existe — todo después del
+`#` lo maneja React en el cliente.
+
+## Deploy en GitHub Pages (recomendado: GitHub Actions)
+
+1. Crea el repositorio **`LRDG_TV`** en GitHub (puede estar vacío).
+2. Sube este proyecto:
+   ```bash
+   git init
+   git add .
+   git commit -m "Proyecto inicial LRDG_TV"
+   git branch -M main
+   git remote add origin https://github.com/TU-USUARIO/LRDG_TV.git
+   git push -u origin main
+   ```
+3. En GitHub, ve a **Settings → Pages**.
+4. En **"Build and deployment" → "Source"**, elige **"GitHub Actions"**.
+5. El workflow `.github/workflows/deploy.yml` ya incluido se ejecutará automáticamente
+   en cada `push` a `main`: instala dependencias, hace `npm run build` y publica la
+   carpeta `dist/` en GitHub Pages.
+6. Después de unos minutos, tu sitio estará en:
+   `https://TU-USUARIO.github.io/LRDG_TV/`
+
+### Alternativa: `gh-pages` (deploy manual desde tu máquina)
+
+Si prefieres no usar Actions:
+
+```bash
+npm run build
+npm run deploy
 ```
 
-Para publicar tu serie, sustituye ese `null` por el objeto descrito en los
-comentarios del propio archivo (título, sinopsis, banner, temporadas y
-episodios).
+Esto usa el paquete `gh-pages` (ya incluido en `devDependencies`) para publicar la
+carpeta `dist/` en la rama `gh-pages`. Luego, en **Settings → Pages → Source**, elige
+**"Deploy from a branch"** y selecciona la rama `gh-pages`.
 
-### Contenido de prueba (opcional)
+## Checklist para evitar la pantalla en blanco
 
-`src/data/testPlaceholderData.js` contiene datos ficticios claramente
-marcados con el prefijo `[PRUEBA]`, pensados solo para revisar el diseño.
-Están **desactivados por defecto**. Para activarlos temporalmente, cambia
-en `src/config/content.js`:
+Si al desplegar ves una página en blanco, revisa:
 
-```js
-export const USE_TEST_PLACEHOLDER_DATA = true;
-```
+- [ ] `vite.config.js` tiene `base: '/LRDG_TV/'` (debe coincidir EXACTAMENTE con el
+      nombre del repositorio, con `/` al inicio y al final).
+- [ ] Estás usando `HashRouter`, no `BrowserRouter` (ya viene así configurado).
+- [ ] En **Settings → Pages**, el "Source" está en "GitHub Actions" (o en la rama
+      correcta si usaste `gh-pages`).
+- [ ] Revisa la consola del navegador (F12): si ves errores 404 en archivos `.js`/`.css`,
+      normalmente es porque el `base` no coincide con el nombre real del repo.
+- [ ] El workflow en la pestaña **Actions** del repositorio terminó en verde (✅).
 
-Para eliminarlos por completo, borra `testPlaceholderData.js` y quita su
-`import` en `content.js`.
+## Notas de diseño
 
-## Rutas
-
-| Ruta                                              | Página                        |
-| -------------------------------------------------- | ----------------------------- |
-| `/`                                                | Página principal de la serie  |
-| `/temporada/:seasonId`                            | Episodios de una temporada    |
-| `/temporada/:seasonId/episodio/:episodeId`        | Reproductor de un episodio    |
-| cualquier otra                                    | Página 404                    |
-
-Se usa `HashRouter` (URLs con `#`) a propósito: GitHub Pages no ejecuta
-código de servidor, así que recargar directamente una ruta interna con un
-`BrowserRouter` normal daría un 404 real de GitHub. Con `HashRouter`,
-GitHub Pages solo necesita servir siempre `index.html`, y el enrutado
-ocurre en el navegador — nunca hay pantalla en blanco ni 404 al recargar.
-
-## Estados de la interfaz
-
-Cada página maneja explícitamente cuatro estados: cargando, catálogo/ítem
-vacío, error, y "no encontrado" (404 para rutas inexistentes). Además,
-`ErrorBoundary` envuelve toda la aplicación para que un error de
-JavaScript nunca deje la pantalla en blanco.
-
-## Despliegue en GitHub Pages
-
-1. Crea el repositorio `LRDC-TV` en GitHub y sube este proyecto (rama
-   `main`), incluyendo `package-lock.json` (ver arriba).
-2. En **Settings → Pages**, en "Build and deployment" selecciona **Source:
-   GitHub Actions**.
-3. Al hacer push a `main`, el workflow `.github/workflows/deploy.yml`
-   instala dependencias, ejecuta `npm run build` y publica `./dist`.
-4. La app quedará disponible en `https://<usuario>.github.io/LRDC-TV/`.
-
-`vite.config.js` ya tiene `base: '/LRDC-TV/'`, necesario para que todos los
-assets (JS, CSS, fuentes, imágenes) se resuelvan correctamente bajo esa
-subruta en vez de asumir la raíz del dominio.
-
-## Próxima fase: panel de administración
-
-La capa `src/config/content.js` está pensada para que, cuando se añada
-Firebase (Firestore para los datos, Storage para imágenes/video, y un
-panel de administración con login), solo haga falta reescribir el cuerpo
-de `fetchSeries` / `fetchSeason` / `fetchEpisode` para leer de Firestore en
-vez de los archivos locales. Ninguna página ni componente necesita
-cambiar, porque todos reciben los datos con la misma forma de siempre.
+- Paleta cine/marquesina: fondo casi negro (`#0a0a0d`), acento rojo marquesina
+  (`#c81e3a`) y dorado de proyector (`#d4a24c`) para datos y detalles.
+- Tipografía: `Bebas Neue` para títulos grandes (estilo cartel), `Manrope` para texto,
+  `JetBrains Mono` para metadatos (duración, fechas, números de episodio).
+- Las tarjetas de episodio llevan una perforación tipo fotograma de película como
+  detalle distintivo, arriba y abajo de la miniatura.
+- No se incluye contenido real de ninguna serie: `src/data/seriesData.js` trae datos
+  de ejemplo (imágenes libres de Unsplash y un video de muestra de MDN) listos para que
+  los reemplaces por los tuyos.

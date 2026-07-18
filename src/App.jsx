@@ -1,28 +1,21 @@
-import { HashRouter, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import SeasonPage from './pages/SeasonPage';
-import EpisodePage from './pages/EpisodePage';
-import NotFoundPage from './pages/NotFoundPage';
+import { HashRouter, Routes, Route } from "react-router-dom"
+import Navbar from "./components/Navbar.jsx"
+import Home from "./pages/Home.jsx"
+import Episodes from "./pages/Episodes.jsx"
+import Watch from "./pages/Watch.jsx"
+import Admin from "./pages/Admin.jsx"
 
-// Se usa HashRouter (rutas del tipo /LRDC-TV/#/temporada/1) a propósito.
-// GitHub Pages no soporta el enrutado del lado del servidor que
-// necesitaría un BrowserRouter normal (recargar /temporada/1 directamente
-// daría un 404 de GitHub). Con HashRouter, GitHub Pages solo necesita
-// servir siempre index.html, y el enrutado real ocurre en el navegador,
-// así que recargar cualquier URL interna nunca produce una pantalla en
-// blanco ni un 404.
 export default function App() {
   return (
     <HashRouter>
+      <Navbar />
       <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/temporada/:seasonId" element={<SeasonPage />} />
-        <Route
-          path="/temporada/:seasonId/episodio/:episodeId"
-          element={<EpisodePage />}
-        />
-        <Route path="*" element={<NotFoundPage />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/episodios" element={<Episodes />} />
+        <Route path="/ver/:episodeId" element={<Watch />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="*" element={<Home />} />
       </Routes>
     </HashRouter>
-  );
+  )
 }
