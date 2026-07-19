@@ -17,9 +17,6 @@ export default function Episodes() {
   const [selected, setSelected] = useState(seasonNumbers[0] ?? 1)
   const activeSeason = seasonNumbers.includes(selected) ? selected : seasonNumbers[0]
 
-  const seasonMeta = (series.seasons || []).find((s) => s.number === activeSeason)
-  const seasonLabel = seasonMeta?.name || `Temporada ${activeSeason}`
-
   const eps = episodes
     .filter((ep) => ep.season === activeSeason)
     .sort((a, b) => a.episode - b.episode)
@@ -31,9 +28,7 @@ export default function Episodes() {
         <h1 className="episodes-page__title">Episodios</h1>
 
         {seasonNumbers.length === 0 ? (
-          <p className="episodes-page__empty">
-            Todavía no hay episodios. Añádelos desde el <Link to="/admin">panel de administración</Link>.
-          </p>
+          <p className="episodes-page__empty">No hay episodios disponibles.</p>
         ) : (
           <>
             <div className="season-bar">
@@ -55,7 +50,7 @@ export default function Episodes() {
             </div>
 
             {eps.length === 0 ? (
-              <p className="episodes-page__empty">{seasonLabel} todavía no tiene episodios.</p>
+              <p className="episodes-page__empty">No hay episodios disponibles.</p>
             ) : (
               <ul className="ep-row-list">
                 {eps.map((ep) => (
