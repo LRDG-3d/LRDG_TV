@@ -8,6 +8,7 @@ const emptyForm = {
   id: "",
   season: 1,
   episode: 1,
+  category: "",
   title: "",
   description: "",
   thumbnail: "",
@@ -43,6 +44,8 @@ export default function Admin() {
   const [editingId, setEditingId] = useState(null)
   const [copied, setCopied] = useState(false)
   const [status, setStatus] = useState("idle") // idle | saving | saved | error
+  const [newSeasonName, setNewSeasonName] = useState("")
+  const [newCategoryName, setNewCategoryName] = useState("")
 
   useEffect(() => {
     if (!contentLoading) setSeriesForm(series)
@@ -61,6 +64,8 @@ export default function Admin() {
     return <Login onLogin={login} />
   }
 
+  const seasons = seriesForm.seasons?.length ? seriesForm.seasons : [{ number: 1, name: "Temporada 1" }]
+  const categories = seriesForm.categories || []
 
   async function persist(nextSeries, nextEpisodes) {
     setStatus("saving")
@@ -79,10 +84,50 @@ export default function Admin() {
     persist(seriesForm, episodes)
   }
 
-  function nextEpisodeNumber() {
-    const season1 = episodes.filter((ep) => ep.season === 1)
-    if (season1.length === 0) return 1
-    return Math.max(...season1.map((ep) => ep.episode)) + 1
+  function addSeason() {
+    const list = seriesForm.seasons || []
+    const nextNumber = list.length ? Math.max(...list.map((s) => s.number)) + 1 : 1
+    const name = newSeasonName.trim() || `Temporada ${nextNumber}`
+    const nextSeriesForm = { ...seriesForm, seasons: [...list, { number: nextNumber, name }] }
+    setSeriesForm(nextSeriesForm)
+    setNewSeasonName("")
+    persist(nextSeriesForm, episodes)
+  }
+
+  function deleteSeason(number) {
+    if (episodes.some((ep) => ep.season === number)) {
+      alert("No puedes eliminar una temporada que todavía tiene episodios. Muévelos o elimínalos primero.")
+      return
+    }
+    if (!confirm("¿Eliminar esta temporada?")) return
+    const nextSeriesForm = { ...seriesForm, seasons: (seriesForm.seasons || []).filter((s) => s.number !== number) }
+    setSeriesForm(nextSeriesForm)
+    persist(nextSeriesForm, episodes)
+  }
+
+  function addCategory() {
+    const name = newCategoryName.trim()
+    if (!name || categories.includes(name)) {
+      setNewCategoryName("")
+      return
+    }
+    const nextSeriesForm = { ...seriesForm, categories: [...categories, name] }
+    setSeriesForm(nextSeriesForm)
+    setNewCategoryName("")
+    persist(nextSeriesForm, episodes)
+  }
+
+  function deleteCategory(name) {
+    if (!confirm(`¿Eliminar la categoría "${name}"?`)) return
+    const nextSeriesForm = { ...seriesForm, categories: categories.filter((c) => c !== name) }
+    setSeriesForm(nextSeriesForm)
+    persist(nextSeriesForm, episodes)
+  }
+
+  function nextEpisodeNumber(seasonNumber) {
+    const inSeason = episodes.filter((ep) => ep.season === seasonNumber)
+    if (inSeason.length === 0) return 1
+    return Math.max(...inSeason.map((ep) => ep.episode)) + 1
   }
 
   function handleEpisodeSubmit(e) {
@@ -90,14 +135,14 @@ export default function Admin() {
 
     let next
     if (editingId) {
-      // Editar: conserva la temporada/número que ya tenía este episodio.
+      // Editar: conserva el id; la temporada/categoría sí se pueden cambiar.
       const existing = episodes.find((ep) => ep.id === editingId)
       next = { ...existing, ...epForm, id: editingId }
     } else {
-      // Nuevo episodio: se asigna automáticamente al final de la lista.
-      const episode = nextEpisodeNumber()
-      const id = `s01e${String(episode).padStart(2, "0")}`
-      next = { ...epForm, id, season: 1, episode }
+      const seasonNum = Number(epForm.season) || 1
+      const episodeNum = nextEpisodeNumber(seasonNum)
+      const id = `s${String(seasonNum).padStart(2, "0")}e${String(episodeNum).padStart(2, "0")}`
+      next = { ...epForm, id, season: seasonNum, episode: episodeNum }
     }
 
     let updated
@@ -107,7 +152,7 @@ export default function Admin() {
       updated = [...episodes, next]
     }
     persist(seriesForm, updated)
-    setEpForm(emptyForm)
+    setEpForm({ ...emptyForm, season: seasons[0]?.number ?? 1 })
     setEditingId(null)
   }
 
@@ -159,6 +204,9 @@ export default function Admin() {
         <div className="admin-page__tabs">
           <button className={tab === "episodes" ? "is-active" : ""} onClick={() => setTab("episodes")}>
             Episodios
+          </button>
+          <button className={tab === "organize" ? "is-active" : ""} onClick={() => setTab("organize")}>
+            Temporadas y categorías
           </button>
           <button className={tab === "series" ? "is-active" : ""} onClick={() => setTab("series")}>
             Datos de la serie
@@ -213,9 +261,95 @@ export default function Admin() {
           </form>
         )}
 
+        {tab === "organize" && (
+          <div className="admin-organize">
+            <div className="admin-organize__block">
+              <h2 className="admin-page__subtitle">Temporadas</h2>
+              <div className="admin-organize__add">
+                <input
+                  placeholder="Nombre (opcional, ej. Temporada 2)"
+                  value={newSeasonName}
+                  onChange={(e) => setNewSeasonName(e.target.value)}
+                />
+                <button type="button" className="btn btn-primary" onClick={addSeason}>
+                  Añadir temporada
+                </button>
+              </div>
+              {seasons.length === 0 ? (
+                <p className="admin-page__hint">Todavía no hay temporadas.</p>
+              ) : (
+                <ul className="admin-organize__list">
+                  {seasons.map((s) => (
+                    <li key={s.number}>
+                      <span>
+                        {s.name} <em>#{s.number}</em>
+                      </span>
+                      <button type="button" className="btn btn-ghost" onClick={() => deleteSeason(s.number)}>
+                        Eliminar
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="admin-organize__block">
+              <h2 className="admin-page__subtitle">Categorías</h2>
+              <div className="admin-organize__add">
+                <input
+                  placeholder="Nombre de la categoría (ej. Especiales)"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                />
+                <button type="button" className="btn btn-primary" onClick={addCategory}>
+                  Añadir categoría
+                </button>
+              </div>
+              {categories.length === 0 ? (
+                <p className="admin-page__hint">Todavía no hay categorías. Son opcionales.</p>
+              ) : (
+                <ul className="admin-organize__list">
+                  {categories.map((c) => (
+                    <li key={c}>
+                      <span>{c}</span>
+                      <button type="button" className="btn btn-ghost" onClick={() => deleteCategory(c)}>
+                        Eliminar
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+
         {tab === "episodes" && (
           <>
             <form className="admin-form" onSubmit={handleEpisodeSubmit}>
+              <label>
+                Temporada
+                <select
+                  value={epForm.season}
+                  onChange={(e) => setEpForm({ ...epForm, season: Number(e.target.value) })}
+                >
+                  {seasons.map((s) => (
+                    <option key={s.number} value={s.number}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Categoría
+                <select value={epForm.category} onChange={(e) => setEpForm({ ...epForm, category: e.target.value })}>
+                  <option value="">Sin categoría</option>
+                  {categories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <label className="admin-form__full">
                 Título
                 <input
@@ -279,7 +413,7 @@ export default function Admin() {
                     type="button"
                     className="btn btn-ghost"
                     onClick={() => {
-                      setEpForm(emptyForm)
+                      setEpForm({ ...emptyForm, season: seasons[0]?.number ?? 1 })
                       setEditingId(null)
                     }}
                   >
@@ -299,6 +433,7 @@ export default function Admin() {
                     <div className="admin-list__body">
                       <span className="admin-list__num">
                         S{String(ep.season).padStart(2, "0")}E{String(ep.episode).padStart(2, "0")}
+                        {ep.category ? ` · ${ep.category}` : ""}
                       </span>
                       <strong>{ep.title}</strong>
                     </div>
