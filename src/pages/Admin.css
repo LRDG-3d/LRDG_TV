@@ -120,6 +120,30 @@
   border-color: var(--gold);
 }
 
+.admin-form__url-row {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-form__url-row input {
+  flex: 1;
+}
+
+.admin-form__url-row .btn {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.admin-form__error {
+  display: block;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
 .admin-form__preview {
   display: flex;
   flex-direction: column;

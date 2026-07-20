@@ -35,6 +35,41 @@ function download(filename, text) {
   URL.revokeObjectURL(url)
 }
 
+function formatDuration(totalSeconds) {
+  const s = Math.floor(totalSeconds % 60)
+  const m = Math.floor(totalSeconds / 60) % 60
+  const h = Math.floor(totalSeconds / 3600)
+  const pad = (n) => String(n).padStart(2, "0")
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`
+}
+
+// Carga el video en memoria (sin reproducirlo) solo para leer su duración real,
+// usando la misma URL directa que ya pusiste en "URL del video".
+function readVideoDuration(url) {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement("video")
+    video.preload = "metadata"
+    const cleanup = () => {
+      video.src = ""
+      video.removeAttribute("src")
+    }
+    video.onloadedmetadata = () => {
+      const duration = video.duration
+      cleanup()
+      if (!duration || Number.isNaN(duration) || !Number.isFinite(duration)) {
+        reject(new Error("No se pudo leer la duración de ese video."))
+      } else {
+        resolve(duration)
+      }
+    }
+    video.onerror = () => {
+      cleanup()
+      reject(new Error("No se pudo cargar ese video. Revisa que la URL sea directa y accesible."))
+    }
+    video.src = url
+  })
+}
+
 export default function Admin() {
   const { user, loading, login, logout } = useAuth()
   const { series, episodes, loading: contentLoading, publish } = useCloudContent()
@@ -43,6 +78,8 @@ export default function Admin() {
   const [epForm, setEpForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [detecting, setDetecting] = useState(false)
+  const [detectError, setDetectError] = useState("")
   const [status, setStatus] = useState("idle") // idle | saving | saved | error
   const [newSeasonName, setNewSeasonName] = useState("")
   const [newCategoryName, setNewCategoryName] = useState("")
@@ -159,7 +196,22 @@ export default function Admin() {
   function editEpisode(ep) {
     setEpForm(ep)
     setEditingId(ep.id)
+    setDetectError("")
     window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  async function handleDetectDuration() {
+    if (!epForm.videoUrl) return
+    setDetecting(true)
+    setDetectError("")
+    try {
+      const seconds = await readVideoDuration(epForm.videoUrl)
+      setEpForm((prev) => ({ ...prev, duration: formatDuration(seconds) }))
+    } catch (err) {
+      setDetectError(err.message)
+    } finally {
+      setDetecting(false)
+    }
   }
 
   function deleteEpisode(id) {
@@ -373,19 +425,31 @@ export default function Admin() {
                   onChange={(e) => setEpForm({ ...epForm, thumbnail: e.target.value })}
                 />
               </label>
-              <label>
+              <label className="admin-form__full">
                 URL del video
-                <input
-                  required
-                  value={epForm.videoUrl}
-                  onChange={(e) => setEpForm({ ...epForm, videoUrl: e.target.value })}
-                />
+                <div className="admin-form__url-row">
+                  <input
+                    required
+                    value={epForm.videoUrl}
+                    onChange={(e) => setEpForm({ ...epForm, videoUrl: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={handleDetectDuration}
+                    disabled={!epForm.videoUrl || detecting}
+                  >
+                    {detecting ? "Leyendo…" : "Detectar duración"}
+                  </button>
+                </div>
+                {detectError && <span className="admin-form__error">{detectError}</span>}
               </label>
               <label>
                 Duración (ej. 42:00)
                 <input
                   value={epForm.duration}
                   onChange={(e) => setEpForm({ ...epForm, duration: e.target.value })}
+                  placeholder="Se llena sola al detectar"
                 />
               </label>
               <label>
