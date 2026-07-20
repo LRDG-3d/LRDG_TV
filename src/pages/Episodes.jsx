@@ -5,6 +5,7 @@ import "./Episodes.css"
 
 export default function Episodes() {
   const { series, episodes } = useCloudContent()
+  const [view, setView] = useState("list") // "list" (barras) | "large" (rectángulos grandes)
 
   // Lista de temporadas: usa las definidas en el admin y, si falta alguna,
   // agrega las que ya tengan episodios (por si acaso quedaron sueltas).
@@ -32,26 +33,47 @@ export default function Episodes() {
         ) : (
           <>
             <div className="season-bar">
-              <select
-                className="season-bar__select"
-                value={activeSeason}
-                onChange={(e) => setSelected(Number(e.target.value))}
-              >
-                {seasonNumbers.map((n) => {
-                  const meta = (series.seasons || []).find((s) => s.number === n)
-                  return (
-                    <option key={n} value={n}>
-                      {meta?.name || `Temporada ${n}`}
-                    </option>
-                  )
-                })}
-              </select>
-              <span className="season-bar__arrow" aria-hidden="true">▾</span>
+              <div className="season-bar__select-wrap">
+                <select
+                  className="season-bar__select"
+                  value={activeSeason}
+                  onChange={(e) => setSelected(Number(e.target.value))}
+                >
+                  {seasonNumbers.map((n) => {
+                    const meta = (series.seasons || []).find((s) => s.number === n)
+                    return (
+                      <option key={n} value={n}>
+                        {meta?.name || `Temporada ${n}`}
+                      </option>
+                    )
+                  })}
+                </select>
+                <span className="season-bar__arrow" aria-hidden="true">▾</span>
+              </div>
+
+              <div className="view-toggle">
+                <button
+                  className={view === "list" ? "is-active" : ""}
+                  onClick={() => setView("list")}
+                  aria-label="Vista en barras"
+                  title="Vista en barras"
+                >
+                  ☰
+                </button>
+                <button
+                  className={view === "large" ? "is-active" : ""}
+                  onClick={() => setView("large")}
+                  aria-label="Vista en rectángulos grandes"
+                  title="Vista en rectángulos grandes"
+                >
+                  ▭
+                </button>
+              </div>
             </div>
 
             {eps.length === 0 ? (
               <p className="episodes-page__empty">No hay episodios disponibles.</p>
-            ) : (
+            ) : view === "list" ? (
               <ul className="ep-row-list">
                 {eps.map((ep) => (
                   <li key={ep.id} className="ep-row">
@@ -66,6 +88,23 @@ export default function Episodes() {
                         <span className="ep-row__duration">{ep.duration}</span>
                         {ep.category && <span className="ep-row__category">{ep.category}</span>}
                       </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul className="ep-large-list">
+                {eps.map((ep) => (
+                  <li key={ep.id} className="ep-large">
+                    <Link to={`/ver/${ep.id}`} className="ep-large__thumb-link">
+                      <img src={ep.thumbnail} alt="" loading="lazy" className="ep-large__thumb" />
+                      <span className="ep-large__play" aria-hidden="true">▶</span>
+                      <span className="ep-large__duration">{ep.duration}</span>
+                    </Link>
+                    <Link to={`/ver/${ep.id}`} className="ep-large__body">
+                      <span className="ep-large__num">EP. {ep.episode}</span>
+                      <h3 className="ep-large__title">{ep.title}</h3>
+                      {ep.category && <span className="ep-row__category">{ep.category}</span>}
                     </Link>
                   </li>
                 ))}
