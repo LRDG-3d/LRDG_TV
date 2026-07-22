@@ -144,6 +144,53 @@
   margin-top: 6px;
 }
 
+.admin-form__captures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.admin-form__capture {
+  padding: 0;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-raised);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.admin-form__capture img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+}
+
+.admin-form__capture.is-selected {
+  border-color: var(--gold);
+}
+
+.admin-organize__season-row {
+  flex-wrap: wrap;
+}
+
+.admin-organize__archive-input {
+  flex: 1;
+  min-width: 160px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  color: var(--ink);
+  font-size: 12.5px;
+}
+
+.admin-organize__archive-input:focus {
+  border-color: var(--gold);
+}
+
 .admin-form__preview {
   display: flex;
   flex-direction: column;

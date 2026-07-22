@@ -80,8 +80,12 @@ export default function Admin() {
   const [copied, setCopied] = useState(false)
   const [detecting, setDetecting] = useState(false)
   const [detectError, setDetectError] = useState("")
+  const [archiveCaptures, setArchiveCaptures] = useState([])
+  const [loadingCaptures, setLoadingCaptures] = useState(false)
+  const [captureError, setCaptureError] = useState("")
   const [status, setStatus] = useState("idle") // idle | saving | saved | error
   const [newSeasonName, setNewSeasonName] = useState("")
+  const [newSeasonArchiveId, setNewSeasonArchiveId] = useState("")
   const [newCategoryName, setNewCategoryName] = useState("")
 
   useEffect(() => {
@@ -103,6 +107,7 @@ export default function Admin() {
 
   const seasons = seriesForm.seasons?.length ? seriesForm.seasons : [{ number: 1, name: "Temporada 1" }]
   const categories = seriesForm.categories || []
+  const activeSeasonArchiveId = seasons.find((s) => s.number === Number(epForm.season))?.archiveId || ""
 
   async function persist(nextSeries, nextEpisodes) {
     setStatus("saving")
@@ -125,10 +130,20 @@ export default function Admin() {
     const list = seriesForm.seasons || []
     const nextNumber = list.length ? Math.max(...list.map((s) => s.number)) + 1 : 1
     const name = newSeasonName.trim() || `Temporada ${nextNumber}`
-    const nextSeriesForm = { ...seriesForm, seasons: [...list, { number: nextNumber, name }] }
+    const archiveId = newSeasonArchiveId.trim()
+    const nextSeriesForm = { ...seriesForm, seasons: [...list, { number: nextNumber, name, archiveId }] }
     setSeriesForm(nextSeriesForm)
     setNewSeasonName("")
+    setNewSeasonArchiveId("")
     persist(nextSeriesForm, episodes)
+  }
+
+  function updateSeasonArchiveId(number, archiveId) {
+    const nextSeriesForm = {
+      ...seriesForm,
+      seasons: (seriesForm.seasons || []).map((s) => (s.number === number ? { ...s, archiveId } : s)),
+    }
+    setSeriesForm(nextSeriesForm)
   }
 
   function deleteSeason(number) {
@@ -177,7 +192,7 @@ export default function Admin() {
       next = { ...existing, ...epForm, id: editingId }
     } else {
       const seasonNum = Number(epForm.season) || 1
-      const episodeNum = nextEpisodeNumber(seasonNum)
+      const episodeNum = Number(epForm.episode) > 0 ? Number(epForm.episode) : nextEpisodeNumber(seasonNum)
       const id = `s${String(seasonNum).padStart(2, "0")}e${String(episodeNum).padStart(2, "0")}`
       next = { ...epForm, id, season: seasonNum, episode: episodeNum }
     }
@@ -189,14 +204,16 @@ export default function Admin() {
       updated = [...episodes, next]
     }
     persist(seriesForm, updated)
-    setEpForm({ ...emptyForm, season: seasons[0]?.number ?? 1 })
+    setEpForm({ ...emptyForm, season: seasons[0]?.number ?? 1, episode: nextEpisodeNumber(seasons[0]?.number ?? 1) })
     setEditingId(null)
+    setArchiveCaptures([])
   }
 
   function editEpisode(ep) {
     setEpForm(ep)
     setEditingId(ep.id)
     setDetectError("")
+    setArchiveCaptures([])
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
@@ -211,6 +228,37 @@ export default function Admin() {
       setDetectError(err.message)
     } finally {
       setDetecting(false)
+    }
+  }
+
+  async function handleLoadArchiveCaptures() {
+    if (!activeSeasonArchiveId) return
+    setLoadingCaptures(true)
+    setCaptureError("")
+    setArchiveCaptures([])
+    try {
+      const seasonNum = Number(epForm.season) || 1
+      const epNum = String(epForm.episode || nextEpisodeNumber(seasonNum)).padStart(2, "0")
+      const prefix = `Cap/LRDG-T${seasonNum}-E${epNum}_`
+
+      const res = await fetch(`https://archive.org/metadata/${activeSeasonArchiveId}`)
+      if (!res.ok) throw new Error("No se pudo consultar archive.org.")
+      const data = await res.json()
+
+      const matches = (data.files || [])
+        .map((f) => f.name)
+        .filter((name) => name.includes(prefix) && /\.(jpe?g|png)$/i.test(name))
+        .sort()
+
+      if (matches.length === 0) {
+        setCaptureError("No se encontraron capturas para este episodio en esa temporada.")
+        return
+      }
+      setArchiveCaptures(matches.map((name) => `https://archive.org/download/${activeSeasonArchiveId}/${name}`))
+    } catch (err) {
+      setCaptureError(err.message)
+    } finally {
+      setLoadingCaptures(false)
     }
   }
 
@@ -323,6 +371,11 @@ export default function Admin() {
                   value={newSeasonName}
                   onChange={(e) => setNewSeasonName(e.target.value)}
                 />
+                <input
+                  placeholder="ID de archive.org (opcional, ej. LRDC_2609)"
+                  value={newSeasonArchiveId}
+                  onChange={(e) => setNewSeasonArchiveId(e.target.value)}
+                />
                 <button type="button" className="btn btn-primary" onClick={addSeason}>
                   Añadir temporada
                 </button>
@@ -332,10 +385,17 @@ export default function Admin() {
               ) : (
                 <ul className="admin-organize__list">
                   {seasons.map((s) => (
-                    <li key={s.number}>
+                    <li key={s.number} className="admin-organize__season-row">
                       <span>
                         {s.name} <em>#{s.number}</em>
                       </span>
+                      <input
+                        className="admin-organize__archive-input"
+                        placeholder="ID de archive.org (miniaturas)"
+                        value={s.archiveId || ""}
+                        onChange={(e) => updateSeasonArchiveId(s.number, e.target.value)}
+                        onBlur={() => persist(seriesForm, episodes)}
+                      />
                       <button type="button" className="btn btn-ghost" onClick={() => deleteSeason(s.number)}>
                         Eliminar
                       </button>
@@ -392,6 +452,15 @@ export default function Admin() {
                 </select>
               </label>
               <label>
+                Número de episodio
+                <input
+                  type="number"
+                  min="1"
+                  value={epForm.episode}
+                  onChange={(e) => setEpForm({ ...epForm, episode: Number(e.target.value) })}
+                />
+              </label>
+              <label>
                 Categoría
                 <select value={epForm.category} onChange={(e) => setEpForm({ ...epForm, category: e.target.value })}>
                   <option value="">Sin categoría</option>
@@ -418,12 +487,39 @@ export default function Admin() {
                   onChange={(e) => setEpForm({ ...epForm, description: e.target.value })}
                 />
               </label>
-              <label>
+              <label className="admin-form__full">
                 Miniatura (URL)
-                <input
-                  value={epForm.thumbnail}
-                  onChange={(e) => setEpForm({ ...epForm, thumbnail: e.target.value })}
-                />
+                <div className="admin-form__url-row">
+                  <input
+                    value={epForm.thumbnail}
+                    onChange={(e) => setEpForm({ ...epForm, thumbnail: e.target.value })}
+                  />
+                  {activeSeasonArchiveId && (
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={handleLoadArchiveCaptures}
+                      disabled={loadingCaptures}
+                    >
+                      {loadingCaptures ? "Buscando…" : "Ver capturas de archive.org"}
+                    </button>
+                  )}
+                </div>
+                {captureError && <span className="admin-form__error">{captureError}</span>}
+                {archiveCaptures.length > 0 && (
+                  <div className="admin-form__captures">
+                    {archiveCaptures.map((url) => (
+                      <button
+                        type="button"
+                        key={url}
+                        className={`admin-form__capture ${epForm.thumbnail === url ? "is-selected" : ""}`}
+                        onClick={() => setEpForm({ ...epForm, thumbnail: url })}
+                      >
+                        <img src={url} alt="" loading="lazy" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </label>
               <label className="admin-form__full">
                 URL del video
@@ -432,6 +528,7 @@ export default function Admin() {
                     required
                     value={epForm.videoUrl}
                     onChange={(e) => setEpForm({ ...epForm, videoUrl: e.target.value })}
+                    onBlur={handleDetectDuration}
                   />
                   <button
                     type="button"
@@ -477,7 +574,7 @@ export default function Admin() {
                     type="button"
                     className="btn btn-ghost"
                     onClick={() => {
-                      setEpForm({ ...emptyForm, season: seasons[0]?.number ?? 1 })
+                      setEpForm({ ...emptyForm, season: seasons[0]?.number ?? 1, episode: nextEpisodeNumber(seasons[0]?.number ?? 1) })
                       setEditingId(null)
                     }}
                   >
