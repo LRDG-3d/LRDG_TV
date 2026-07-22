@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { useCloudContent } from "../hooks/useCloudContent.js"
+import { DEFAULT_THUMBNAIL } from "../constants.js"
 import "./Episodes.css"
 
 export default function Episodes() {
@@ -78,7 +79,7 @@ export default function Episodes() {
                 {eps.map((ep) => (
                   <li key={ep.id} className="ep-row">
                     <Link to={`/ver/${ep.id}`} className="ep-row__thumb-link">
-                      <img src={ep.thumbnail} alt="" loading="lazy" className="ep-row__thumb" />
+                      <img src={ep.thumbnail || DEFAULT_THUMBNAIL} alt="" loading="lazy" className="ep-row__thumb" />
                       <span className="ep-row__play" aria-hidden="true">▶</span>
                     </Link>
                     <Link to={`/ver/${ep.id}`} className="ep-row__body">
@@ -97,7 +98,7 @@ export default function Episodes() {
                 {eps.map((ep) => (
                   <li key={ep.id} className="ep-large">
                     <Link to={`/ver/${ep.id}`} className="ep-large__thumb-link">
-                      <img src={ep.thumbnail} alt="" loading="lazy" className="ep-large__thumb" />
+                      <img src={ep.thumbnail || DEFAULT_THUMBNAIL} alt="" loading="lazy" className="ep-large__thumb" />
                       <span className="ep-large__play" aria-hidden="true">▶</span>
                       <span className="ep-large__duration">{ep.duration}</span>
                     </Link>

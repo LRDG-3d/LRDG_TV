@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { DEFAULT_THUMBNAIL } from "../constants.js"
 import "./EpisodeCard.css"
 
 export default function EpisodeCard({ episode }) {
@@ -6,7 +7,7 @@ export default function EpisodeCard({ episode }) {
     <Link to={`/ver/${episode.id}`} className="ep-card">
       <div className="ep-card__frame">
         <div className="ep-card__sprockets" aria-hidden="true" />
-        <img src={episode.thumbnail} alt="" loading="lazy" className="ep-card__thumb" />
+        <img src={episode.thumbnail || DEFAULT_THUMBNAIL} alt="" loading="lazy" className="ep-card__thumb" />
         <div className="ep-card__sprockets ep-card__sprockets--bottom" aria-hidden="true" />
         <div className="ep-card__play" aria-hidden="true">▶</div>
         <span className="ep-card__duration">{episode.duration}</span>
